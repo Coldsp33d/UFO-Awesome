@@ -17,11 +17,6 @@ def load_data() -> pd.DataFrame:
     ''' 
     Load data from Data/* into a pandas DataFrame
 
-    Parameters
-    ----------  
-    how : specify the type of file to parse.
-        'json' loads from the JSON file; 'tsv' loads from the TSV file
-
     '''
     try:  # attempt load with pd.read_json
         df = _simple_json_loader()
