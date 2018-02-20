@@ -1,12 +1,16 @@
 import json
 import pandas as pd
+import geoutils
 
 # constants
 df_cols = [
           'sighted_at', 
           'reported_at', 
           'location', 
-          'duration', 
+          'duration',
+          'municipality',
+          'coordinates',
+          'state',
           'shape', 
           'description',
         ]
@@ -29,7 +33,9 @@ def load_data() -> pd.DataFrame:
                        .apply(
                             pd.to_datetime, errors='coerce', format='%Y%m%d'
                        )
-
+    #df['location'] = pd.DataFrame(df['location'].str.split(',').tolist(), columns=['location','state'])
+    df['municipality'], df['state'] = df['location'].str.strip().str.split(',', 1).str
+    df['coordinates'] = geoutils.get_coordinates_list(df['municipality'])
     return df.reindex(columns=df_cols).replace('', pd.np.nan)
 
 
@@ -59,4 +65,10 @@ def _default_json_loader() -> pd.DataFrame:
 
 if __name__ == '__main__':
     df = load_data()
+    '''
+    for index, row in df.head(3).iterrows():
+        sight_location = row['location']
+        sight_locaton_coordinates = geoutils.get_coordinates(sight_location)
+        print()
+    '''
     print(df.head(3))
