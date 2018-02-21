@@ -7,7 +7,7 @@ from geopy.distance import vincenty
 import json
 
 coordinates_map = {}
-with open('data/coordinates.json', 'r') as fp:
+with open('Data/coordinates.json', 'r') as fp:
     coordinates_map = json.load(fp)
 
 geo_locator = Nominatim(timeout=None)
@@ -28,7 +28,7 @@ def get_coordinates(location):
 
 
 def save_coordinates(coordinates_map):
-    with open('data/coordinates.json', 'w') as fp:
+    with open('Data/coordinates.json', 'w') as fp:
         json.dump(coordinates_map, fp)
 
 
