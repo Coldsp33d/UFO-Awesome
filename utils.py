@@ -35,8 +35,8 @@ def default_json_loader(filepath : str) -> pd.DataFrame:
     return pd.DataFrame.from_records(data)
 
 
-def simple_csv_saver(df : pd.DataFrame, filepath : str):
-    df.to_csv(filepath, index=False)
+def simple_csv_saver(df : pd.DataFrame, filepath : str, **kwargs : dict):
+    df.to_csv(filepath, index=False, **kwargs)
 
 
 def load_ufo_data() -> pd.DataFrame:
