@@ -2,14 +2,18 @@ import json
 import pandas as pd
 import re
 
+# global constant
+df_date_cols = ['sighted_at', 'reported_at']
+
 # General dataloader functions
 def simple_json_loader(filepath : str, lines : bool=True) -> pd.DataFrame:
     ''' Reads a .json file using pd.read_json '''
     return pd.read_json(filepath, lines=lines)
 
 
-def simple_csv_loader(filepath : str):
-    return pd.read_csv(filepath)
+def simple_csv_loader(filepath : str, **kwargs : dict) -> pd.DataFrame:
+    encoding = kwargs.get('encoding', 'latin-1') # default encoding
+    return pd.read_csv(filepath, encoding=encoding, **kwargs)
 
 
 def default_json_loader(filepath : str) -> pd.DataFrame:
@@ -41,7 +45,6 @@ def load_ufo_data() -> pd.DataFrame:
               'shape', 
               'description',
           ]
-    df_date_cols = ['sighted_at', 'reported_at']
 
     try:  # attempt load with pd.read_json
         '''
