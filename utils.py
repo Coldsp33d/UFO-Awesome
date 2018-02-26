@@ -66,23 +66,26 @@ def load_ufo_data() -> pd.DataFrame:
 def split_location(df : pd.DataFrame) -> pd.DataFrame:
     states = json.load(open('Data/states.json'))
     p = r'''
-    (?P<municipality>
-        [^\(]+
+    (?P<municipality>           # first capture group - capture municipality
+        [^\(]+                  # anything that is not a parenthesis 
     )
-    .*
-    ,
-    \s*
-    (?P<state>
-        .*
+    .*                          # greedy match
+    ,                           # match the last comma in the string
+    \s*                         # strip spaces
+    (?P<state>                  # second capture group - capture state
+        .*                      # greedy match (state)    
     )'''
 
-    v = df.location.str.extract(p, expand=True, flags=re.VERBOSE).applymap(str.strip)
+    v = df.location.str.extract(
+                p, expand=True, flags=re.VERBOSE)\
+          .applymap(str.strip)
+
     v['municipality'] = v['municipality'].str.lower()
     v['state'] = v['state'].str.upper()
     v['is_usa'] = ~(v['state'].map(states)).isna()
 
     return pd.concat([df, v], axis=1)
-    
+
 
 if __name__ == '__main__':
     df = load_data()
