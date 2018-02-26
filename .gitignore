@@ -1,4 +1,8 @@
-Data/*
+Data/ufo_awesome.*
+Data/16154.yaml
+Data/mun_*.txt
+Data/README*
 __pycache__
 .ipynb_checkpoints
 .DS_Store
+Data/
