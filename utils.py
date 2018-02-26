@@ -1,9 +1,15 @@
 import json
+import numpy as np
 import pandas as pd
 import re
 
-# global constant
+# global variables
 df_date_cols = ['sighted_at', 'reported_at']
+
+states = json.load(open('Data/states.json'))
+state_codes, state_names = zip(*states.items())
+states_rev = dict(zip(state_names, state_codes))
+
 
 # General dataloader functions
 def simple_json_loader(filepath : str, lines : bool=True) -> pd.DataFrame:
@@ -30,7 +36,7 @@ def default_json_loader(filepath : str) -> pd.DataFrame:
 
 
 def simple_csv_saver(df : pd.DataFrame, filepath : str):
-    df.to_csv(filepath)
+    df.to_csv(filepath, index=False)
 
 
 def load_ufo_data() -> pd.DataFrame:
@@ -67,7 +73,6 @@ def load_ufo_data() -> pd.DataFrame:
 
 
 def split_location(df : pd.DataFrame) -> pd.DataFrame:
-    states = json.load(open('Data/states.json'))
     p = r'''
     (?P<municipality>           # first capture group - capture municipality
         [^\(]+                  # anything that is not a parenthesis 
