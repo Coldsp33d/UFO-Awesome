@@ -3,24 +3,30 @@ from queue import Queue
 import requests
 import pandas as pd
 import time
+import sys
 
 from utils import chunkify
 
 def _wrapper(id_val, items, function, queue, sleep):
     for j, item in enumerate(items, 1):
         result = None
+        while True:
+            retries = 0
+            time.sleep(sleep)
 
-        try:
-            result = function(item)
-
-        except (IndexError, requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError, KeyboardInterrupt) as e:
-            if isinstance(e, KeyboardInterrupt):
-                return
+            try:
+                result = function(item); break
+            except (IndexError, requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):
+                retries += 1
+                if retries >= 3:
+                    break
 
         if result:
             queue.put((item, result))
 
-        print('<Process {}>\tProcessed {}/{} requests'.format(id_val, j, len(items)))
+        print('<Process {:2d}>\tProcessed {}/{} requests'.format(id_val, j, len(items)))
+
+    print('<Process {:2d}>\tCompleted'.format(id_val))
 
 
 def dispatch_job(items, function, nproc=8, sleep=0):
@@ -50,6 +56,8 @@ if __name__ == '__main__':
     import geocode
     from geocode import addr2geo3, zip2geo, coordinates
     from geocode import coordinates, zipcodes
+    import random
+
     import json
 
     
@@ -57,16 +65,23 @@ if __name__ == '__main__':
         'Data/us-population-by-zip-code/population_by_zip_2000.csv', usecols=['zipcode'], squeeze=True
     )
     
-    data = dispatch_job(s.unique().tolist()[:10000], zip2geo, nproc=100, sleep=1)
+    v = [i for i in s.unique().tolist() if i not in zipcodes]
+    random.shuffle(v)
+    data = dispatch_job(v, zip2geo, nproc=8, sleep=.33)
+    data.update(zipcodes)
     json.dump(data, open('Data/zipcodes.json', 'w'))
     # df_geo = pd.io.json.json_normalize(data, record_path=['places'], meta=['post code'], errors='ignore')
     # df_geo.to_csv('Data/geodata.csv')
-    '''
     
 
+    '''
     mun = json.load(open('Data/municipalities.json'))
-    data = dispatch_job([i for i in mun if i not in coordinates][:10000], addr2geo3, nproc=50, sleep=0)
-    print(data)
+    v = [i for i in mun if i not in coordinates]
+
+    random.shuffle(v)
+    data = dispatch_job(v, addr2geo3, nproc=8, sleep=.33)
+
+    data.update(coordinates)
     json.dump(data, open('Data/coordinates.json', 'w'))
     '''
 
