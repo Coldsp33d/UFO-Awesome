@@ -130,10 +130,17 @@ def clean_airport_data(save : bool=True) -> pd.DataFrame:
     Data may also be saved to Data/airport_codes_clean.csv.
 
     '''
-    df_airport = utils.simple_json_loader('Data/airport-codes.json')\
+    df_airport = utils.simple_csv_loader('Data/airport-codes.csv')\
                       .query('iso_country == \'US\' and type != \'closed\'')
     # filter on columns
-    df_airport = df_airport.loc[:, ['coordinates', 'elevation_ft', 'municipality', 'name', 'type']]
+    df_airport = df_airport.loc[:, ['coordinates', 'municipality', 'iso_region', 'name', 'type']]
+    # convert iso_region to state for merge
+    df_airport.insert(
+        loc=df_airport.columns.get_loc('municipality') + 1, 
+        value=df_airport.pop('iso_region').str.split('-').str[1],
+        column='state'
+    )
+
     # convert and expand coordinates into separate columns
     df_airport[['airport_lon', 'airport_lat']] = df_airport.pop('coordinates').str.split(',\s*', expand=True).astype(float)
     # remove rows with invalid-coordinates
@@ -145,6 +152,9 @@ def clean_airport_data(save : bool=True) -> pd.DataFrame:
         utils.simple_csv_saver(df_airport, 'Data/airport_codes_clean.csv')
 
     return df_airport
+
+def clean_climate_data(save : bool=True) -> pd.DataFrame:
+    pass
 
 
 if __name__ == '__main__':
