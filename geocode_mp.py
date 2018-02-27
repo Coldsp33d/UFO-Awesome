@@ -47,23 +47,26 @@ def dispatch_job(items, function, nproc=8, sleep=0):
 
 
 if __name__ == '__main__':
+    import geocode
     from geocode import addr2geo3, zip2geo, coordinates
+    from geocode import coordinates, zipcodes
     import json
 
-    '''
+    
     s = pd.read_csv(
         'Data/us-population-by-zip-code/population_by_zip_2000.csv', usecols=['zipcode'], squeeze=True
     )
     
-    data = dispatch_job(s.unique().tolist()[:10], zip2geo, nproc=3)
-
-    df_geo = pd.io.json.json_normalize(data, record_path=['places'], meta=['post code'], errors='ignore')
-    df_geo.to_csv('Data/geodata.csv')
+    data = dispatch_job(s.unique().tolist()[:10000], zip2geo, nproc=100, sleep=1)
+    json.dump(data, open('Data/zipcodes.json', 'w'))
+    # df_geo = pd.io.json.json_normalize(data, record_path=['places'], meta=['post code'], errors='ignore')
+    # df_geo.to_csv('Data/geodata.csv')
     '''
-    from geocode import coordinates
+    
 
     mun = json.load(open('Data/municipalities.json'))
-    data = dispatch_job([i for i in mun if i not in coordinates][:500], addr2geo3, nproc=50, sleep=0)
+    data = dispatch_job([i for i in mun if i not in coordinates][:10000], addr2geo3, nproc=50, sleep=0)
     print(data)
     json.dump(data, open('Data/coordinates.json', 'w'))
+    '''
 
