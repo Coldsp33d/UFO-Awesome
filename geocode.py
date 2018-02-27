@@ -10,10 +10,19 @@ import os
 import requests
 import geocoder
 
+from geopy.geocoders import Nominatim
+from geopy.distance import vincenty
+
+geo_locator = Nominatim(timeout=None)
+
+coordinates = {}
+if os.path.isfile('Data/coordinates.json'):
+    coordinates = json.load(open('Data/coordinates.json', 'r'))
 
 def addr2geo(address):
+    # uses 
     if address in coordinates:
-        return coordinates[address]
+        return {'address' : coordinates[address]}
     
     url = 'https://maps.googleapis.com/maps/api/geocode/json'
     params = {'sensor': 'false', 'address': address}
@@ -24,10 +33,22 @@ def addr2geo(address):
 
 def addr2geo2(address):
     if address in coordinates:
-        return coordinates[address] 
+        return {'address' : coordinates[address]}
     
     return geocoder.google(address).latlng
-    
+
+def addr2geo3(address):
+    if address in coordinates:
+        return {'address' : coordinates[address]}
+
+    geo = geo_locator.geocode(address + ', United States of America', timeout=None)
+
+    try:
+        return {'lat' : geo.latitude, 'lng' : geo.longitude}
+    except AttributeError:
+        return {'lat' : None, 'lng' : None}
+
+
 def zip2geo(code):
     return requests.get("http://api.zippopotam.us/us/{}".format(code), timeout=5).json()
 
@@ -46,8 +67,7 @@ if __name__ == '__main__':
                  .unique()\
                  .tolist()
 
-    if os.path.isfile('Data/coordinates.json'):
-        coordinates = json.load(open('Data/coordinates.json', 'r'))
+
 
     
     geo_f = addr2geo
