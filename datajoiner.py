@@ -4,7 +4,8 @@ import pandas as pd
 # load data
 df = utils.simple_csv_loader(
             'Data/ufo_awesome_modified.csv', 
-            parse_dates=utils.df_date_cols
+            parse_dates=utils.df_date_cols,
+            compression='gzip'
 )
 df_airport = utils.simple_csv_loader('Data/airport_codes_clean.csv')
 
