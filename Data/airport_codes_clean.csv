@@ -1,4 +1,4 @@
-municipality,state,name,type,airport_lon,airport_lat
+municipality,state,name,type,airport_lng,airport_lat
 bensalem,PA,Total Rf Heliport,heliport,-74.93360137939453,40.07080078125
 leoti,KS,Aero B Ranch Airport,small_airport,-101.473911,38.704022
 anchor point,AK,Lowell Field,small_airport,-151.695999146,59.94919968

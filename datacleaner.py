@@ -142,9 +142,9 @@ def clean_airport_data(save : bool=True) -> pd.DataFrame:
     )
 
     # convert and expand coordinates into separate columns
-    df_airport[['airport_lon', 'airport_lat']] = df_airport.pop('coordinates').str.split(',\s*', expand=True).astype(float)
+    df_airport[['airport_lng', 'airport_lat']] = df_airport.pop('coordinates').str.split(',\s*', expand=True).astype(float)
     # remove rows with invalid-coordinates
-    df_airport = df_airport[df_airport.airport_lon < -63]
+    df_airport = df_airport.loc[df_airport.airport_lng < -63]
     # lower-case municipality for consistency
     df_airport.municipality = df_airport.municipality.str.lower()
 
