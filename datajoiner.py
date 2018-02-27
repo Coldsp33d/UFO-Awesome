@@ -21,3 +21,5 @@ df = df.merge(
 
 #  ---- merge UFO with airport data --- # 
 df = df.merge(df_airport, on='municipality', how='left')
+
+utils.simple_csv_saver(df, 'Data/ufo_awesome_joined.csv', compression='gzip')
