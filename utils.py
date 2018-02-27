@@ -10,6 +10,10 @@ states = json.load(open('Data/states.json'))
 state_codes, state_names = zip(*states.items())
 states_rev = dict(zip(state_names, state_codes))
 
+# Ned Batchelder's `chunkify` function
+def chunkify(l, n): 
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
 
 # General dataloader functions
 def simple_json_loader(filepath : str, lines : bool=True) -> pd.DataFrame:
