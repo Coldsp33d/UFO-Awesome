@@ -20,7 +20,7 @@ def _wrapper(id_val, items, function, queue, sleep):
         if result:
             queue.put((item, result))
 
-        print('<Process {}> Processed {}/{} requests'.format(id_val, j, len(items)))
+        print('<Process {}>\tProcessed {}/{} requests'.format(id_val, j, len(items)))
 
 
 def dispatch_job(items, function, nproc=8, sleep=0):
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     from geocode import coordinates
 
     mun = json.load(open('Data/municipalities.json'))
-    data = dispatch_job([i for i in mun if i not in coordinates][:100], addr2geo3, nproc=50, sleep=0)
+    data = dispatch_job([i for i in mun if i not in coordinates][:500], addr2geo3, nproc=50, sleep=0)
     print(data)
     json.dump(data, open('Data/coordinates.json', 'w'))
 
