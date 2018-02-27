@@ -53,35 +53,39 @@ def dispatch_job(items, function, nproc=8, sleep=0):
 
 
 if __name__ == '__main__':
-    import geocode
-    from geocode import addr2geo3, zip2geo, coordinates
-    from geocode import coordinates, zipcodes
     import random
-
     import json
 
+    import geocode
+
+    from geocode import addr2geo3, zip2geo, coordinates
+    from geocode import coordinates, zipcodes
     
+    # --- geocoding zipcodes --- #
     s = pd.read_csv(
         'Data/us-population-by-zip-code/population_by_zip_2000.csv', usecols=['zipcode'], squeeze=True
     )
     
     v = [i for i in s.unique().tolist() if i not in zipcodes]
     random.shuffle(v)
+
     data = dispatch_job(v, zip2geo, nproc=8, sleep=.33)
     data.update(zipcodes)
+    
     json.dump(data, open('Data/zipcodes.json', 'w'))
     # df_geo = pd.io.json.json_normalize(data, record_path=['places'], meta=['post code'], errors='ignore')
     # df_geo.to_csv('Data/geodata.csv')
     
 
     '''
+    # ---- geocoding human readable addresses --- #
     mun = json.load(open('Data/municipalities.json'))
     v = [i for i in mun if i not in coordinates]
-
     random.shuffle(v)
-    data = dispatch_job(v, addr2geo3, nproc=8, sleep=.33)
 
+    data = dispatch_job(v, addr2geo3, nproc=8, sleep=.33)
     data.update(coordinates)
+
     json.dump(data, open('Data/coordinates.json', 'w'))
     '''
 
