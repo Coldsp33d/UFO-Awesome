@@ -1,6 +1,9 @@
 import utils
 from utils import states
 import pandas as pd
+import glob
+import re
+import json
 
 states_rev = {v : k for k, v in states.items()}
 
@@ -11,6 +14,7 @@ def clean_census_data(save : bool=True) -> pd.DataFrame:
     Cleans input census files to create and return combined census data
     Data may also be saved to Data/census_clean.csv.
 
+    EXECUTION TIME: 10-15 seconds (rough estimate)
     '''
 
     # load census data for 1991-2000 
@@ -63,10 +67,60 @@ def clean_census_data(save : bool=True) -> pd.DataFrame:
                         ).dropna()
     df_census.census = df_census.census.astype(int)
 
-    if save:
-        utils.simple_csv_saver(df_census, 'Data/census_clean.csv')
+    # load geocoded zipcodes from zipcode.json
+    zipcodes = pd.io.json.json_normalize(
+                list(json.load(open('Data/zipcodes.json')).values()), 
+                record_path=['places'], 
+                meta=['post code'], 
+                errors='ignore'
+    )   
+    # cleanup code
+    zipcodes = zipcodes.drop('state', 1).drop_duplicates(subset=['post code'])
+    zipcodes.columns = ['lat', 'lng', 'municipality', 'state', 'zipcode']
+    zipcodes.municipality = zipcodes.municipality.str.lower()
 
-    return df_census
+    # load census data with zipcode
+    df_census_zip = pd.concat([
+                pd.read_csv(
+                        f,  usecols=['minimum_age', 'maximum_age', 'gender', 'population', 'zipcode']
+                   ).assign(census_year=int(re.search('\d+', f).group())) 
+                for f in glob.glob('Data/us-population-by-zip-code/population_by_zip_*.csv')
+            ], 
+            ignore_index=True
+    )
+    # remove non-integeral zipcodes
+    df_census_zip.zipcode = df_census_zip.zipcode.mask(~df_census_zip.zipcode.astype(str).str.isdigit())
+    # drop nulls
+    df_census_zip.dropna(inplace=True)
+
+    # bin data by age into groups 
+    v = pd.cut(
+            df_census_zip.minimum_age, 
+            bins=[0, 10, 20, 30, 40, 50, 60, 70, 80, 90], 
+            labels=['0-9', '10-19', '20-29', '30-39', '40-49', '50-59', '60-69', '70-79', '80-89'], 
+            right=False
+    )
+    v.name = 'age_group'
+
+    # group and aggregate by census_year, zipcode, age group, and gender
+    # unstack on gender
+    # merge with geocoded zipcode data
+    # merge with other census data for municipality
+    df_census_final = df_census_zip.groupby(['census_year', 'zipcode', v, 'gender'])\
+                                   .population\
+                                   .sum()\
+                                   .unstack()\
+                                   .reset_index()\
+                                   .merge(zipcodes, on='zipcode')\
+                                   .merge(
+                                      df_census.drop('census', 1), 
+                                      on=['municipality', 'state', 'census_year']
+                                  )
+
+    if save:
+        utils.simple_csv_saver(df_census_final, 'Data/census_clean.csv')
+
+    return df_final
 
 def clean_airport_data(save : bool=True) -> pd.DataFrame:
     ''' 

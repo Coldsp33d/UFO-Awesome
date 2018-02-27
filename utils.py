@@ -3,6 +3,9 @@ import numpy as np
 import pandas as pd
 import re
 
+import geopy
+from geopy.distance import vincenty
+
 # global variables
 df_date_cols = ['sighted_at', 'reported_at']
 
@@ -98,6 +101,9 @@ def split_location(df : pd.DataFrame) -> pd.DataFrame:
 
     return pd.concat([df, v], axis=1)
 
+
+def get_distance_in_miles(coordinate1, coordinate2):
+    return vincenty(coordinate1, coordinate2).miles
 
 if __name__ == '__main__':
     df = load_data()
