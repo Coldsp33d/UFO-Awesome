@@ -61,31 +61,33 @@ if __name__ == '__main__':
     from geocode import addr2geo3, zip2geo, coordinates
     from geocode import coordinates, zipcodes
     
-    # --- geocoding zipcodes --- #
-    s = pd.read_csv(
-        'Data/us-population-by-zip-code/population_by_zip_2000.csv', usecols=['zipcode'], squeeze=True
-    )
-    
-    v = [i for i in s.unique().tolist() if i not in zipcodes]
-    random.shuffle(v)
+    run_zip = True
+    if run_zip:
 
-    data = dispatch_job(v, zip2geo, nproc=8, sleep=.33)
-    data.update(zipcodes)
-    
-    json.dump(data, open('Data/zipcodes.json', 'w'))
-    # df_geo = pd.io.json.json_normalize(data, record_path=['places'], meta=['post code'], errors='ignore')
-    # df_geo.to_csv('Data/geodata.csv')
-    
+        # --- geocoding zipcodes --- #
+        s = pd.read_csv(
+            'Data/us-population-by-zip-code/population_by_zip_2000.csv', usecols=['zipcode'], squeeze=True
+        )
+        
+        v = [i for i in s.unique().tolist() if i not in zipcodes]
+        random.shuffle(v)
 
-    '''
-    # ---- geocoding human readable addresses --- #
-    mun = json.load(open('Data/municipalities.json'))
-    v = [i for i in mun if i not in coordinates]
-    random.shuffle(v)
+        data = dispatch_job(v, zip2geo, nproc=8, sleep=.33)
+        data.update(zipcodes)
+        
+        json.dump(data, open('Data/zipcodes.json', 'w'))
+        # df_geo = pd.io.json.json_normalize(data, record_path=['places'], meta=['post code'], errors='ignore')
+        # df_geo.to_csv('Data/geodata.csv')
+        
+    else:
+        # ---- geocoding human readable addresses --- #
+        mun = json.load(open('Data/municipalities.json'))
+        v = [i for i in mun if i not in coordinates]
+        random.shuffle(v)
 
-    data = dispatch_job(v, addr2geo3, nproc=8, sleep=.33)
-    data.update(coordinates)
+        data = dispatch_job(v[:10], addr2geo3, nproc=8, sleep=.33)
+        data.update(coordinates)
 
-    json.dump(data, open('Data/coordinates.json', 'w'))
-    '''
+        json.dump(data, open('Data/coordinates.json', 'w'))
+        
 

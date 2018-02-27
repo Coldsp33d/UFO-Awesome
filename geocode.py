@@ -1,7 +1,5 @@
-"""
-Used for fetching coordinates of a location and computing distance between two locations
-Usage: get_distance_in_miles(get_coordinates('Iowa City, IA'), (41.65999984741211,-91.54769897460938))
-"""
+# Various geocoding utilities - Koustav, Shiva 
+# Note: `get_distance_in_miles` has been moved to utils.py
 
 from typing import Union
 
@@ -14,7 +12,6 @@ import geocoder
 
 import geopy
 from geopy.geocoders import Nominatim
-from geopy.distance import vincenty
 
 # initialise geocoder 
 geo_locator = Nominatim(timeout=None)
