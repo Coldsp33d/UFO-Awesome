@@ -105,6 +105,26 @@ def split_location(df : pd.DataFrame) -> pd.DataFrame:
 def get_distance_in_miles(coordinate1, coordinate2):
     return vincenty(coordinate1, coordinate2).miles
 
+# courtesy https://stackoverflow.com/a/29546836/4909087
+def fast_haversine(lon1, lat1, lon2, lat2):
+    """
+    Calculate the great circle distance between two points
+    on the earth (specified in decimal degrees)
+
+    All args must be of equal length.    
+
+    """
+    lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
+
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+
+    a = np.sin(dlat/2.0)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon/2.0)**2
+
+    c = 2 * np.arcsin(np.sqrt(a))
+    km = 6367 * c
+    return km
+
 if __name__ == '__main__':
     df = load_data()
     print(df.head(3))

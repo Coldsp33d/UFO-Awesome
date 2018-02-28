@@ -122,6 +122,7 @@ def clean_census_data(save : bool=True) -> pd.DataFrame:
 
     return df_final
 
+
 def clean_airport_data(save : bool=True) -> pd.DataFrame:
     ''' 
     Requires original airport codes file airport-codes.json in Data/ to work  
@@ -153,8 +154,27 @@ def clean_airport_data(save : bool=True) -> pd.DataFrame:
 
     return df_airport
 
+
 def clean_climate_data(save : bool=True) -> pd.DataFrame:
-    pass
+    df_climate = pd.read_csv(
+        'Data/climate_dataset.csv', 
+        usecols=['STATE_ABBR', 'YEARMONTH', 'PCP', 'TAVG', 'TMIN', 'TMAX', 'PDSI'],
+        dtype={'YEARMONTH' : str}
+    ).dropna(
+        subset=['PCP', 'TAVG', 'TMIN', 'TMAX', 'PDSI']
+    ).reset_index(drop=True)
+
+    df_climate.columns = ['state', 'date', 'precipitation', 'temp_avg', 'temp_min', 'temp_max', 'pdsi']
+
+    c = df_climate.columns.difference(['state', 'date'])
+    df_climate[c] = df_climate[c].clip_lower(-99.99).replace(-99.99, pd.np.nan)
+
+    df_climate.date = pd.to_datetime(df_climate.date, format='%Y%m')
+
+    if save:
+        utils.simple_csv_saver(df_climate, 'Data/climate_clean.csv')
+
+    return df_climate
 
 
 if __name__ == '__main__':
