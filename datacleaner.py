@@ -131,26 +131,70 @@ def clean_airport_data(save : bool=True) -> pd.DataFrame:
     Data may also be saved to Data/airport_codes_clean.csv.
 
     '''
-    df_airport = utils.simple_csv_loader('Data/airport-codes.csv')\
-                      .query('iso_country == \'US\' and type != \'closed\'')
-    # filter on columns
-    df_airport = df_airport.loc[:, ['coordinates', 'municipality', 'iso_region', 'name', 'type']]
-    # convert iso_region to state for merge
-    df_airport.insert(
-        loc=df_airport.columns.get_loc('municipality') + 1, 
-        value=df_airport.pop('iso_region').str.split('-').str[1],
-        column='state'
+    # load nearest airport data
+    df_nearest_airport = utils.simple_csv_loader(
+                    'Data/nearest_airports.csv', 
+                    names=['location', 'ident', 'distance'],
+                    header=None,
+                    skiprows=1
     )
+    df_nearest_airport['location'] = df_nearest_airport.location.str.rstrip(', US')
+
+    p = r'''
+    (?P<municipality>           # first capture group - capture municipality
+        [^\(]+                  # anything that is not a parenthesis 
+    )
+    .*                          # greedy match
+    ,                           # match the last comma in the string
+    \s*                         # strip spaces
+    (?P<state>                  # second capture group - capture state
+        .*                      # greedy match (state)    
+    )'''
+    v = df_nearest_airport.pop('location')\
+                          .str.extract(
+                                p, expand=True, flags=re.VERBOSE
+                         ).dropna()\
+                          .applymap(str.strip)
+
+    v['municipality'] = v['municipality'].str.lower()
+    v['state'] = v['state'].str.upper()
+
+    df_nearest_airport = pd.concat([df_nearest_airport, v], 1)
+
+    # now for the airport
+    df_airport = utils.simple_csv_loader(
+                        'Data/airport-codes.csv',
+                        usecols=['ident', 'name', 'type', 'coordinates', 'type', 'iso_country']
+                      )\
+                      .query('iso_country == \'US\' and type != \'closed\'')\
+                      .merge(df_nearest_airport, on='ident')
+    # filter on columns
+    df_airport = df_airport.loc[:,
+        [
+        'ident', 
+        'name', 
+        'municipality',
+        'state',
+        'coordinates', 
+        'type', 
+        'distance'
+        ]
+    ]
 
     # convert and expand coordinates into separate columns
-    df_airport[['airport_lng', 'airport_lat']] = df_airport.pop('coordinates').str.split(',\s*', expand=True).astype(float)
+    df_airport[['lng', 'lat']] = \
+            df_airport.pop('coordinates').str.split(',\s*', expand=True).astype(float)
     # remove rows with invalid-coordinates
-    df_airport = df_airport.loc[df_airport.airport_lng < -63]
+    df_airport = df_airport.loc[df_airport.lng < -63]
     # lower-case municipality for consistency
-    df_airport.municipality = df_airport.municipality.str.lower()
+
+    # add column prefix for easy identification
+    df_airport.columns = [
+            'airport_' +  x if x not in {'municipality', 'state'} else x for x in df_airport.columns 
+    ] 
 
     if save:
-        utils.simple_csv_saver(df_airport, 'Data/airport_codes_clean.csv')
+        utils.simple_csv_saver(df_airport, 'Data/airport_clean.csv')
 
     return df_airport
 
