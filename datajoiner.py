@@ -16,7 +16,7 @@ datasetspec = {
                 }),
     'airport' : ('Data/airport_clean.csv', datacleaner.clean_airport_data, {}),
     'census'  : ('Data/census_clean.csv' , datacleaner.clean_census_data , {}),
-    'climate' : ('Data/climate_clean.csv', datacleaner.clean_climate_data, {})
+    'climate' : ('Data/climate_clean.csv', datacleaner.clean_climate_data, {'parse_dates' : ['date']})
 }
 
 dfs = {}
