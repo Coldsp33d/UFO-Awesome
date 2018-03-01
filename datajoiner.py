@@ -47,7 +47,7 @@ df = df.merge(
 )
 # --- merge UFO with climate data --- #
 df = df.assign(
-         temp=df.sighted_at.fillna(df.reported_at) - pd.offsets.MonthBegin(1)  
+        temp=df.sighted_at.fillna(df.reported_at) - pd.offsets.MonthBegin(1)  
                                        # floor dataset to the first of each month
      ).merge(
          df_climate, 

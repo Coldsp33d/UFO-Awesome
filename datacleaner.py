@@ -37,6 +37,9 @@ def clean_ufo_data(save : bool=True) -> pd.DataFrame:
     df['state'] = df['state'].mask(~df['state'].isin(states))
     # cleanup description column # TODO - MORE
     df['description'] = df['description'].str.lower()
+    # add indicator for urban/rural data
+    cities = json.load(open('Data/cities.json'))
+    df['is_urban'] = df.municipality.isin(cities)
 
     df = df.merge(df_elev, on=['municipality', 'state'], how='left')
 
