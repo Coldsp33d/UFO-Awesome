@@ -190,7 +190,7 @@ def clean_airport_data(save : bool=True) -> pd.DataFrame:
                         'Data/airport-codes.csv',
                         usecols=['ident', 'name', 'type', 'coordinates', 'type', 'iso_country']
                       )\
-                      .query('iso_country == \'US\' and type not in [\'closed\', \'small_airport\', \'heliport\']')\
+                      .query('iso_country == \'US\' and type not in [\'closed\']')\
                       .merge(df_nearest_airport, on='ident')
     # filter on columns
     df_airport = df_airport.loc[:,
