@@ -86,7 +86,7 @@ def clean_census_data(save : bool=True) -> pd.DataFrame:
     # join 2000 and 2010 census dataframes vertically
     df_census = pd.concat([i, j], ignore_index=True)
     # clean municipality column - remove spaces and descriptive terms
-    df_census['is_rural'] = df_census.municipality.str.contains(r'village|county|borough')
+    df_census['is_urban'] = df_census.municipality.str.contains(r'city|town')
 
     df_census.municipality = df_census.municipality\
                           .str.lower()\
