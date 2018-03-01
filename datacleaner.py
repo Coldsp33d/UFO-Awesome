@@ -34,7 +34,7 @@ def clean_ufo_data(save : bool=True) -> pd.DataFrame:
     # clean up shape column
     df['shape'] = df['shape'].str.strip().mask(df['shape'].eq('unknown'))
     # cleanup state column
-    df['state'] = df['state'].mask(df['state'].isin(states))
+    df['state'] = df['state'].mask(~df['state'].isin(states))
     # cleanup description column # TODO - MORE
     df['description'] = df['description'].str.lower()
 
