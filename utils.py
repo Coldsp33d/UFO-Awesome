@@ -10,8 +10,19 @@ from geopy.distance import vincenty
 df_date_cols = ['sighted_at', 'reported_at']
 
 states = json.load(open('Data/states.json'))
+states_rev = {v : k for k, v in states.items()}
 state_codes, state_names = zip(*states.items())
-states_rev = dict(zip(state_names, state_codes))
+
+p =  r'''
+    (?P<municipality>           # first capture group - capture municipality
+        [^\(]+                  # anything that is not a parenthesis 
+    )
+    .*                          # greedy match
+    ,                           # match the last comma in the string
+    \s*                         # strip spaces
+    (?P<state>                  # second capture group - capture state
+        .*                      # greedy match (state)    
+    )'''
 
 # Ned Batchelder's `chunkify` function
 def chunkify(l, n): 
@@ -23,11 +34,9 @@ def simple_json_loader(filepath : str, lines : bool=True) -> pd.DataFrame:
     ''' Reads a .json file using pd.read_json '''
     return pd.read_json(filepath, lines=lines)
 
-
 def simple_csv_loader(filepath : str, **kwargs : dict) -> pd.DataFrame:
     encoding = kwargs.get('encoding', 'latin-1') # default encoding
     return pd.read_csv(filepath, encoding=encoding, **kwargs)
-
 
 def default_json_loader(filepath : str) -> pd.DataFrame:
     ''' Reads and loads data line-wise, use when pd.read_json cannot be used ''' 
@@ -41,10 +50,8 @@ def default_json_loader(filepath : str) -> pd.DataFrame:
 
     return pd.DataFrame.from_records(data)
 
-
 def simple_csv_saver(df : pd.DataFrame, filepath : str, **kwargs : dict):
     df.to_csv(filepath, index=False, **kwargs)
-
 
 def load_ufo_data() -> pd.DataFrame:
     ''' Data loader code for the ufo_awesome dataset (currently supports only JSON) '''
@@ -78,42 +85,34 @@ def load_ufo_data() -> pd.DataFrame:
 
     return df.reindex(columns=df_cols).replace('', pd.np.nan)
 
+def split_location_column(ser : pd.Series) -> pd.DataFrame:
+    '''
+    Split `location` Series into a dataframe of municipality and state
+    
+    This is a separate function since it is needed in many places 
+    '''
 
-def split_location(df : pd.DataFrame) -> pd.DataFrame:
-    p = r'''
-    (?P<municipality>           # first capture group - capture municipality
-        [^\(]+                  # anything that is not a parenthesis 
-    )
-    .*                          # greedy match
-    ,                           # match the last comma in the string
-    \s*                         # strip spaces
-    (?P<state>                  # second capture group - capture state
-        .*                      # greedy match (state)    
-    )'''
-
-    v = df.location.str.extract(
+    v = ser.str.extract(
                 p, expand=True, flags=re.VERBOSE)\
           .applymap(str.strip)
 
     v['municipality'] = v['municipality'].str.lower()
     v['state'] = v['state'].str.upper()
-    v['is_usa'] = ~(v['state'].map(states)).isna()
 
-    return pd.concat([df, v], axis=1)
-
+    return v
 
 def get_distance_in_miles(coordinate1, coordinate2):
     return vincenty(coordinate1, coordinate2).miles
 
 # courtesy https://stackoverflow.com/a/29546836/4909087
 def fast_haversine(lon1, lat1, lon2, lat2):
-    """
+    '''
     Calculate the great circle distance between two points
     on the earth (specified in decimal degrees)
 
     All args must be of equal length.    
 
-    """
+    '''
     lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
 
     dlon = lon2 - lon1

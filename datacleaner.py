@@ -1,11 +1,40 @@
 import utils
-from utils import states
+from utils import states, states_rev
 import pandas as pd
 import glob
 import re
 import json
 
-states_rev = {v : k for k, v in states.items()}
+from utils import p as column_splitter_pattern
+
+
+def clean_ufo_data(save : bool=True) -> pd.DataFrame:
+    df = utils.load_ufo_data()
+
+    v = utils.split_location_column(df.location)
+    v['is_usa'] = ~(v['state'].map(states)).isna()
+
+    df = pd.concat([df, v], axis=1)
+
+    df_elev = utils.simple_csv_loader('Data/coordinates_elevation.csv')
+    df_elev = pd.concat([
+                df_elev.pop('location')\
+                       .str.rstrip(', US')\
+                       .str.split('\s*,\s*', expand=True)\
+                       .iloc[:, :2]\
+                       .rename(
+                            columns={0 : 'municipality', 1 : 'state'}
+                       ), 
+                df_elev
+        ], axis=1
+     )
+
+    df = df.merge(df_elev, on=['municipality', 'state'], how='left')
+
+    if save:
+        utils.simple_csv_saver(df, 'Data/ufo_awesome_modified.csv', compression='gzip')
+
+    return df
 
 def clean_census_data(save : bool=True) -> pd.DataFrame:
     ''' 
@@ -19,7 +48,7 @@ def clean_census_data(save : bool=True) -> pd.DataFrame:
 
     # load census data for 1991-2000 
     i = pd.read_csv(
-            'Data/census2000.csv', usecols=['NAME','STNAME','ESTIMATESBASE2000'], encoding='latin-1'
+            'Data/sub-est00int.csv', usecols=['NAME','STNAME','ESTIMATESBASE2000'], encoding='latin-1'
     )
     i.columns = ['municipality', 'state', 'census']  # rename columns
     i['census_year'] = 2000     # set the year
@@ -30,7 +59,7 @@ def clean_census_data(save : bool=True) -> pd.DataFrame:
 
     # load census data for 2001-2010    
     j = pd.read_csv(
-            'Data/census2010/PEP_2016_PEPANNRES_with_ann.csv', 
+            'Data/PEP_2016_PEPANNRES/PEP_2016_PEPANNRES_with_ann.csv', 
             usecols=['GEO.display-label','rescen42010'], 
             encoding='latin-1', 
             header=0, 
@@ -75,8 +104,8 @@ def clean_census_data(save : bool=True) -> pd.DataFrame:
                 errors='ignore'
     )   
     # cleanup code
-    zipcodes = zipcodes.drop('state', 1).drop_duplicates(subset=['post code'])
-    zipcodes.columns = ['lat', 'lng', 'municipality', 'state', 'zipcode']
+    zipcodes = zipcodes.drop(['state', 'latitude', 'longitude'], 1).drop_duplicates(subset=['post code'])
+    zipcodes.columns = ['municipality', 'state', 'zipcode']
     zipcodes.municipality = zipcodes.municipality.str.lower()
 
     # load census data with zipcode
@@ -96,8 +125,8 @@ def clean_census_data(save : bool=True) -> pd.DataFrame:
     # bin data by age into groups 
     v = pd.cut(
             df_census_zip.minimum_age, 
-            bins=[0, 10, 20, 30, 40, 50, 60, 70, 80, 90], 
-            labels=['0-9', '10-19', '20-29', '30-39', '40-49', '50-59', '60-69', '70-79', '80-89'], 
+            bins=[0, 18, 65, 100], 
+            labels=['children', 'adults', 'senior_citizens'], 
             right=False
     )
     v.name = 'age_group'
@@ -106,22 +135,24 @@ def clean_census_data(save : bool=True) -> pd.DataFrame:
     # unstack on gender
     # merge with geocoded zipcode data
     # merge with other census data for municipality
-    df_census_final = df_census_zip.groupby(['census_year', 'zipcode', v, 'gender'])\
+    df_census_final = df_census_zip.groupby(['census_year', 'zipcode', v.astype(str), 'gender'])\
                                    .population\
                                    .sum()\
-                                   .unstack()\
+                                   .unstack(-2)\
                                    .reset_index()\
                                    .merge(zipcodes, on='zipcode')\
                                    .merge(
                                       df_census.drop('census', 1), 
                                       on=['municipality', 'state', 'census_year']
-                                  )
+                                  ).groupby(
+                                      ['municipality', 'state', 'census_year'], 
+                                      as_index=False
+                                  ).sum()
 
     if save:
         utils.simple_csv_saver(df_census_final, 'Data/census_clean.csv')
 
-    return df_final
-
+    return df_census_final
 
 def clean_airport_data(save : bool=True) -> pd.DataFrame:
     ''' 
@@ -140,21 +171,14 @@ def clean_airport_data(save : bool=True) -> pd.DataFrame:
     )
     df_nearest_airport['location'] = df_nearest_airport.location.str.rstrip(', US')
 
-    p = r'''
-    (?P<municipality>           # first capture group - capture municipality
-        [^\(]+                  # anything that is not a parenthesis 
-    )
-    .*                          # greedy match
-    ,                           # match the last comma in the string
-    \s*                         # strip spaces
-    (?P<state>                  # second capture group - capture state
-        .*                      # greedy match (state)    
-    )'''
+    p = column_splitter_pattern
     v = df_nearest_airport.pop('location')\
-                          .str.extract(
-                                p, expand=True, flags=re.VERBOSE
-                         ).dropna()\
-                          .applymap(str.strip)
+                          .str.rstrip(', US')\
+                          .str.split('\s*,\s*', expand=True)\
+                          .iloc[:, :2]\
+                          .rename(
+                             columns={0 : 'municipality', 1 : 'state'}
+                         )
 
     v['municipality'] = v['municipality'].str.lower()
     v['state'] = v['state'].str.upper()
@@ -166,7 +190,7 @@ def clean_airport_data(save : bool=True) -> pd.DataFrame:
                         'Data/airport-codes.csv',
                         usecols=['ident', 'name', 'type', 'coordinates', 'type', 'iso_country']
                       )\
-                      .query('iso_country == \'US\' and type != \'closed\'')\
+                      .query('iso_country == \'US\' and type not in [\'closed\', \'small_airport\', \'heliport\']')\
                       .merge(df_nearest_airport, on='ident')
     # filter on columns
     df_airport = df_airport.loc[:,
@@ -198,7 +222,6 @@ def clean_airport_data(save : bool=True) -> pd.DataFrame:
 
     return df_airport
 
-
 def clean_climate_data(save : bool=True) -> pd.DataFrame:
     df_climate = pd.read_csv(
         'Data/climate_dataset.csv', 
@@ -219,7 +242,6 @@ def clean_climate_data(save : bool=True) -> pd.DataFrame:
         utils.simple_csv_saver(df_climate, 'Data/climate_clean.csv')
 
     return df_climate
-
 
 if __name__ == '__main__':
     df = clean_census_data(save=True)
