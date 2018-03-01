@@ -18,7 +18,7 @@ def clean_ufo_data(save : bool=True) -> pd.DataFrame:
     df = pd.concat([df, v], axis=1)
 
     # concatenate elevation and geodata
-    df_elev = utils.simple_csv_loader('Data/coordinates_elevation.csv')
+    df_elev = utils.simple_csv_loader('Data/Input/coordinates_elevation.csv')
     df_elev = pd.concat([
                 df_elev.pop('location')\
                        .str.rstrip(', US')\
@@ -38,7 +38,7 @@ def clean_ufo_data(save : bool=True) -> pd.DataFrame:
     # cleanup description column # TODO - MORE
     df['description'] = df['description'].str.lower()
     # add indicator for urban/rural data
-    cities = json.load(open('Data/cities.json'))
+    cities = json.load(open('Data/Resources/cities.json'))
     df['is_urban'] = df.municipality.isin(cities)
 
     df = df.merge(df_elev, on=['municipality', 'state'], how='left')
@@ -60,7 +60,7 @@ def clean_census_data(save : bool=True) -> pd.DataFrame:
 
     # load geocoded zipcodes from zipcode.json
     zipcodes = pd.io.json.json_normalize(
-                list(json.load(open('Data/zipcodes.json')).values()), 
+                list(json.load(open('Data/Resources/zipcodes.json')).values()), 
                 record_path=['places'], 
                 meta=['post code'], 
                 errors='ignore'
@@ -75,7 +75,7 @@ def clean_census_data(save : bool=True) -> pd.DataFrame:
                 pd.read_csv(
                         f,  usecols=['minimum_age', 'maximum_age', 'gender', 'population', 'zipcode']
                    ).assign(census_year=int(re.search('\d+', f).group())) 
-                for f in glob.glob('Data/us-population-by-zip-code/population_by_zip_*.csv')
+                for f in glob.glob('Data/Input/us-population-by-zip-code/population_by_zip_*.csv')
             ], 
             ignore_index=True
     )
@@ -118,12 +118,12 @@ def clean_airport_data(save : bool=True) -> pd.DataFrame:
     Requires original airport codes file airport-codes.json in Data/ to work  
 
     Cleans airport code file to create and return combined census data
-    Data may also be saved to Data/airport_codes_clean.csv.
+    Data may also be saved to Data/airport_clean.csv.
 
     '''
     # load nearest airport data
     df_nearest_airport = utils.simple_csv_loader(
-                    'Data/nearest_airports.csv', 
+                    'Data/Input/nearest_airports.csv', 
                     names=['location', 'ident', 'distance'],
                     header=None,
                     skiprows=1
@@ -147,7 +147,7 @@ def clean_airport_data(save : bool=True) -> pd.DataFrame:
 
     # now for the airport
     df_airport = utils.simple_csv_loader(
-                        'Data/airport-codes.csv',
+                        'Data/Input/airport-codes.csv',
                         usecols=['ident', 'name', 'type', 'coordinates', 'type', 'iso_country']
                       )\
                       .query('iso_country == \'US\' and type not in [\'closed\']')\
@@ -184,7 +184,7 @@ def clean_airport_data(save : bool=True) -> pd.DataFrame:
 
 def clean_climate_data(save : bool=True) -> pd.DataFrame:
     df_climate = pd.read_csv(
-        'Data/climate_dataset.csv', 
+        'Data/Input/climate_dataset.csv', 
         usecols=['STATE_ABBR', 'YEARMONTH', 'PCP', 'TAVG', 'TMIN', 'TMAX', 'PDSI'],
         dtype={'YEARMONTH' : str}
     ).dropna(

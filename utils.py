@@ -9,7 +9,7 @@ from geopy.distance import vincenty
 # global variables
 df_date_cols = ['sighted_at', 'reported_at']
 
-states = json.load(open('Data/states.json'))
+states = json.load(open('Data/Resources/states.json'))
 states_rev = {v : k for k, v in states.items()}
 state_codes, state_names = zip(*states.items())
 
@@ -72,10 +72,10 @@ def load_ufo_data() -> pd.DataFrame:
         To fix the data, run `python3.6 fix_json_data.py`
 
         ''' 
-        df = simple_json_loader('Data/ufo_awesome.json', lines=True)
+        df = simple_json_loader('Data/Input/ufo_awesome.json', lines=True)
     except ValueError:
           # fallback to loopy implementation reader (filters out corrupt data)
-        df = default_json_loader('Data/ufo_awesome.json')
+        df = default_json_loader('Data/Input/ufo_awesome.json')
 
     df[df_date_cols] = df[df_date_cols]\
                        .astype(str)\
