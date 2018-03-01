@@ -11,11 +11,13 @@ from utils import p as column_splitter_pattern
 def clean_ufo_data(save : bool=True) -> pd.DataFrame:
     df = utils.load_ufo_data()
 
+    # convert location into municipality and state
     v = utils.split_location_column(df.location)
     v['is_usa'] = ~(v['state'].map(states)).isna()
 
     df = pd.concat([df, v], axis=1)
 
+    # concatenate elevation and geodata
     df_elev = utils.simple_csv_loader('Data/coordinates_elevation.csv')
     df_elev = pd.concat([
                 df_elev.pop('location')\
@@ -28,6 +30,13 @@ def clean_ufo_data(save : bool=True) -> pd.DataFrame:
                 df_elev
         ], axis=1
      )
+
+    # clean up shape column
+    df['shape'] = df['shape'].str.strip().mask(df['shape'].eq('unknown'))
+    # cleanup state column
+    df['state'] = df['state'].mask(df['state'].isin(states))
+    # cleanup description column # TODO - MORE
+    df['description'] = df['description'].str.lower()
 
     df = df.merge(df_elev, on=['municipality', 'state'], how='left')
 
@@ -77,11 +86,13 @@ def clean_census_data(save : bool=True) -> pd.DataFrame:
     # join 2000 and 2010 census dataframes vertically
     df_census = pd.concat([i, j], ignore_index=True)
     # clean municipality column - remove spaces and descriptive terms
+    df_census['is_rural'] = df_census.municipality.str.contains(r'village|county|borough')
+
     df_census.municipality = df_census.municipality\
                           .str.lower()\
                           .str.replace(r'\s*\(.*?\)\s*', '')\
                           .str.replace(
-                            'city|town|village|county|borough|municipality', ''
+                            r'city|town|village|county|borough|municipality', ''
                          ).str.strip()
 
     # convert census column to integer. Only consider the uppermost level of population for simplicity
@@ -140,8 +151,11 @@ def clean_census_data(save : bool=True) -> pd.DataFrame:
                                    .sum()\
                                    .unstack(-2)\
                                    .reset_index()\
-                                   .merge(zipcodes, on='zipcode')\
                                    .merge(
+                                       zipcodes, 
+                                       on='zipcode', 
+                                       how='left'
+                                  ).merge(
                                       df_census.drop('census', 1), 
                                       on=['municipality', 'state', 'census_year']
                                   ).groupby(
@@ -169,6 +183,10 @@ def clean_airport_data(save : bool=True) -> pd.DataFrame:
                     header=None,
                     skiprows=1
     )
+
+    # TODO !!!!! Fix Distance 
+    # df_nearest_airport['distance'] = pd.np.cos(df_nearest_airport['distance'].abs()) * 69.172
+
     df_nearest_airport['location'] = df_nearest_airport.location.str.rstrip(', US')
 
     p = column_splitter_pattern

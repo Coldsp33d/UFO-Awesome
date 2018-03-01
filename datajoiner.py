@@ -45,6 +45,7 @@ df['census_year'] = pd.np.ceil(df.sighted_at.fillna(df.reported_at).dt.year / 10
 df = df.merge(
    df_census, on=['municipality', 'state', 'census_year'], how='left'
 )
+df['is_rural'] = df['is_rural'].fillna(False)  # assume innocent until proven guilty
 
 # --- merge UFO with climate data --- #
 df = df.assign(
