@@ -52,60 +52,8 @@ def clean_census_data(save : bool=True) -> pd.DataFrame:
     Cleans input census files to create and return combined census data
     Data may also be saved to Data/census_clean.csv.
 
-    EXECUTION TIME: 10-15 seconds (rough estimate)
+    EXECUTION TIME: 10 seconds (rough estimate)
     '''
-
-    # load census data for 1991-2000 
-    i = pd.read_csv(
-            'Data/sub-est00int.csv', usecols=['NAME','STNAME','ESTIMATESBASE2000'], encoding='latin-1'
-    )
-    i.columns = ['municipality', 'state', 'census']  # rename columns
-    i['census_year'] = 2000     # set the year
-
-    i.state = i.state.str.strip().map(states_rev)    # map state name to state code 
-    i = i[  ~i.municipality.isin(states.values()) 
-          & ~i.municipality.str.contains('Balance')] # the column needs some cleaning
-
-    # load census data for 2001-2010    
-    j = pd.read_csv(
-            'Data/PEP_2016_PEPANNRES/PEP_2016_PEPANNRES_with_ann.csv', 
-            usecols=['GEO.display-label','rescen42010'], 
-            encoding='latin-1', 
-            header=0, 
-            skiprows=[1]    # skip the first row as it isn't needed
-    )
-    j.columns = ['location', 'census']
-    j['census_year'] = 2010
-    # split location into two columns - municipality + state
-    j[['municipality', 'state']] = j.pop('location').str.rsplit(',', 1, expand=True) 
-    # reorder columns 
-    j = j.reindex(columns=['municipality', 'state','census', 'census_year'])
-    # clean and fix state for consistency
-    j.state = j['state'].str.strip().map(states_rev)
-
-    # join 2000 and 2010 census dataframes vertically
-    df_census = pd.concat([i, j], ignore_index=True)
-    # clean municipality column - remove spaces and descriptive terms
-    df_census['is_urban'] = df_census.municipality.str.contains(r'city|town')
-
-    df_census.municipality = df_census.municipality\
-                          .str.lower()\
-                          .str.replace(r'\s*\(.*?\)\s*', '')\
-                          .str.replace(
-                            r'city|town|village|county|borough|municipality', ''
-                         ).str.strip()
-
-    # convert census column to integer. Only consider the uppermost level of population for simplicity
-    # and resolve census across various geographic granularities
-    df_census['census'] = pd.to_numeric(df_census.census, errors='coerce')\
-                            .groupby(
-                                [df_census.municipality, df_census.census_year]
-                           ).transform('max')
-    # remove duplicates and rows with NaNs
-    df_census = df_census.drop_duplicates(
-                                subset=['municipality', 'census_year']
-                        ).dropna()
-    df_census.census = df_census.census.astype(int)
 
     # load geocoded zipcodes from zipcode.json
     zipcodes = pd.io.json.json_normalize(
@@ -118,7 +66,7 @@ def clean_census_data(save : bool=True) -> pd.DataFrame:
     zipcodes = zipcodes.drop(['state', 'latitude', 'longitude'], 1).drop_duplicates(subset=['post code'])
     zipcodes.columns = ['municipality', 'state', 'zipcode']
     zipcodes.municipality = zipcodes.municipality.str.lower()
-
+    zipcodes.zipcode = zipcodes.zipcode.astype(int)
     # load census data with zipcode
     df_census_zip = pd.concat([
                 pd.read_csv(
@@ -129,9 +77,10 @@ def clean_census_data(save : bool=True) -> pd.DataFrame:
             ignore_index=True
     )
     # remove non-integeral zipcodes
-    df_census_zip.zipcode = df_census_zip.zipcode.mask(~df_census_zip.zipcode.astype(str).str.isdigit())
+    df_census_zip.zipcode = pd.to_numeric(df_census_zip.zipcode, errors='coerce')
     # drop nulls
     df_census_zip.dropna(inplace=True)
+    df_census_zip.zipcode = df_census_zip.zipcode.astype(int)
 
     # bin data by age into groups 
     v = pd.cut(
@@ -151,14 +100,7 @@ def clean_census_data(save : bool=True) -> pd.DataFrame:
                                    .sum()\
                                    .unstack(-2)\
                                    .reset_index()\
-                                   .merge(
-                                       zipcodes, 
-                                       on='zipcode', 
-                                       how='left'
-                                  ).merge(
-                                      df_census.drop('census', 1), 
-                                      on=['municipality', 'state', 'census_year']
-                                  ).groupby(
+                                   .merge(zipcodes, on='zipcode', how='left').groupby(
                                       ['municipality', 'state', 'census_year'], 
                                       as_index=False
                                   ).sum()
@@ -183,9 +125,6 @@ def clean_airport_data(save : bool=True) -> pd.DataFrame:
                     header=None,
                     skiprows=1
     )
-
-    # TODO !!!!! Fix Distance 
-    # df_nearest_airport['distance'] = pd.np.cos(df_nearest_airport['distance'].abs()) * 69.172
 
     df_nearest_airport['location'] = df_nearest_airport.location.str.rstrip(', US')
 
