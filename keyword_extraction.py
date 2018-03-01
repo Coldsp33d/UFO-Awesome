@@ -19,7 +19,7 @@ words = set(
             .tolist()
 )
 
-# custom storword list - more comprehensive than NLTK's set
+# custom stopword list - more comprehensive than NLTK's set
 stopwords = set(  
                 pd.read_csv(
                         'Data/Resources/stopwords.txt', 
