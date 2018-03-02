@@ -38,7 +38,7 @@ def createCorrelationMatrix(inputCSV):
                 data[column[0]] = {}
             data[column[0]][column[1]] = column[2]
     matrix = []
-    unique_states = data.keys()
+    unique_states = list(data.keys())
     for row in unique_states:
         row_data = []
         for col in unique_states:
@@ -52,12 +52,11 @@ def createCorrelationMatrix(inputCSV):
         matrix.append(row_data)
 
     matrixJson = {"matrix": matrix, "states": unique_states}
-    with open("correlation-matrix.json", "w") as f:  # Pass the json file as input to correlation-matrix-d3.html
-        f.write(json.dumps(matrixJson))
+    json.dump(matrixJson, open("correlation-matrix.json", "w"))
 
 
 if __name__ == '__main__':
-    argParser = argparse.ArgumentParser('Edit/Cosine Similarity Circle Packing')
+    argParser = argparse.ArgumentParser('Edit/Cosine Similarity Correlation Matrix')
     argParser.add_argument('--inputCSV', required=True,
                            help='path to directory containing CSV File, containing pair-wise similarity scores based on edit/cosine similarity distance')
     args = argParser.parse_args()
