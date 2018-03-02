@@ -62,12 +62,11 @@ if __name__ == '__main__':
         ).description.apply(' '.join)
 
     # with love from https://stackoverflow.com/q/34232190/4909087
-    tfidf = TfidfVectorizer(use_idf=True) 
+    tfidf = TfidfVectorizer(use_idf=True, ngram_range=(1, 2)) 
     X = tfidf.fit_transform(v).nonzero()[1]   # transformed counts
     f = pd.np.array(tfidf.get_feature_names())   # feature names 
 
     json.dump(f[X[:100]].tolist(), open('Data/Resources/keywords.json', 'w'))
-
 
     
 
