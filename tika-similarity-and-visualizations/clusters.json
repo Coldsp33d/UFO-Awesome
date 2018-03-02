@@ -1,0 +1,230 @@
+{
+    "children": [
+        {
+            "children": [
+                {
+                    "name": "changed - changing  0.6914107176547127",
+                    "size": "0.6914107176547127"
+                },
+                {
+                    "name": "changed - chevron  0.6493094697110509",
+                    "size": "0.6493094697110509"
+                },
+                {
+                    "name": "changed - cigar  0.0",
+                    "size": "0.0"
+                },
+                {
+                    "name": "changed - circle  0.679659059783796",
+                    "size": "0.679659059783796"
+                },
+                {
+                    "name": "changed - cone  0.0",
+                    "size": "0.0"
+                },
+                {
+                    "name": "changed - crescent  0.9918365981341757",
+                    "size": "0.9918365981341757"
+                },
+                {
+                    "name": "changed - cross  0.9383431168171101",
+                    "size": "0.9383431168171101"
+                },
+                {
+                    "name": "changed - cylinder  0.5100613704506707",
+                    "size": "0.5100613704506707"
+                },
+                {
+                    "name": "changed - delta  0.9918365981341757",
+                    "size": "0.9918365981341757"
+                }
+            ],
+            "name": "cluster 0"
+        },
+        {
+            "children": [
+                {
+                    "name": "changing - chevron  0.9561828874675149",
+                    "size": "0.9561828874675149"
+                },
+                {
+                    "name": "changing - cigar  0.6324555320336759",
+                    "size": "0.6324555320336759"
+                },
+                {
+                    "name": "changing - circle  0.9908673886137246",
+                    "size": "0.9908673886137246"
+                },
+                {
+                    "name": "changing - cone  0.6324555320336759",
+                    "size": "0.6324555320336759"
+                },
+                {
+                    "name": "changing - crescent  0.7302967433402214",
+                    "size": "0.7302967433402214"
+                },
+                {
+                    "name": "changing - cross  0.7999999999999998",
+                    "size": "0.7999999999999998"
+                },
+                {
+                    "name": "changing - cylinder  0.7745966692414834",
+                    "size": "0.7745966692414834"
+                },
+                {
+                    "name": "changing - delta  0.7302967433402214",
+                    "size": "0.7302967433402214"
+                }
+            ],
+            "name": "cluster 1"
+        },
+        {
+            "children": [
+                {
+                    "name": "chevron - cigar  0.7559289460184544",
+                    "size": "0.7559289460184544"
+                },
+                {
+                    "name": "chevron - circle  0.9869275424396534",
+                    "size": "0.9869275424396534"
+                },
+                {
+                    "name": "chevron - cone  0.7559289460184544",
+                    "size": "0.7559289460184544"
+                },
+                {
+                    "name": "chevron - crescent  0.6546536707079772",
+                    "size": "0.6546536707079772"
+                },
+                {
+                    "name": "chevron - cross  0.8366600265340756",
+                    "size": "0.8366600265340756"
+                },
+                {
+                    "name": "chevron - cylinder  0.9258200997725514",
+                    "size": "0.9258200997725514"
+                },
+                {
+                    "name": "chevron - delta  0.6546536707079772",
+                    "size": "0.6546536707079772"
+                }
+            ],
+            "name": "cluster 2"
+        },
+        {
+            "children": [
+                {
+                    "name": "cigar - circle  0.6963106238227914",
+                    "size": "0.6963106238227914"
+                },
+                {
+                    "name": "cigar - cone  1.0",
+                    "size": "1.0"
+                },
+                {
+                    "name": "cigar - crescent  0.0",
+                    "size": "0.0"
+                },
+                {
+                    "name": "cigar - cross  0.31622776601683794",
+                    "size": "0.31622776601683794"
+                },
+                {
+                    "name": "cigar - cylinder  0.8164965809277261",
+                    "size": "0.8164965809277261"
+                },
+                {
+                    "name": "cigar - delta  0.0",
+                    "size": "0.0"
+                }
+            ],
+            "name": "cluster 3"
+        },
+        {
+            "children": [
+                {
+                    "name": "circle - cone  0.6963106238227914",
+                    "size": "0.6963106238227914"
+                },
+                {
+                    "name": "circle - crescent  0.7035264706814485",
+                    "size": "0.7035264706814485"
+                },
+                {
+                    "name": "circle - cross  0.8257228238447705",
+                    "size": "0.8257228238447705"
+                },
+                {
+                    "name": "circle - cylinder  0.8528028654224419",
+                    "size": "0.8528028654224419"
+                },
+                {
+                    "name": "circle - delta  0.7035264706814485",
+                    "size": "0.7035264706814485"
+                }
+            ],
+            "name": "cluster 4"
+        },
+        {
+            "children": [
+                {
+                    "name": "cone - crescent  0.0",
+                    "size": "0.0"
+                },
+                {
+                    "name": "cone - cross  0.31622776601683794",
+                    "size": "0.31622776601683794"
+                },
+                {
+                    "name": "cone - cylinder  0.8164965809277261",
+                    "size": "0.8164965809277261"
+                },
+                {
+                    "name": "cone - delta  0.0",
+                    "size": "0.0"
+                }
+            ],
+            "name": "cluster 5"
+        },
+        {
+            "children": [
+                {
+                    "name": "crescent - cross  0.9128709291752769",
+                    "size": "0.9128709291752769"
+                },
+                {
+                    "name": "crescent - cylinder  0.47140452079103173",
+                    "size": "0.47140452079103173"
+                },
+                {
+                    "name": "crescent - delta  1.0000000000000002",
+                    "size": "1.0000000000000002"
+                }
+            ],
+            "name": "cluster 6"
+        },
+        {
+            "children": [
+                {
+                    "name": "cross - cylinder  0.7745966692414834",
+                    "size": "0.7745966692414834"
+                },
+                {
+                    "name": "cross - delta  0.9128709291752769",
+                    "size": "0.9128709291752769"
+                }
+            ],
+            "name": "cluster 7"
+        },
+        {
+            "children": [
+                {
+                    "name": "cylinder - delta  0.47140452079103173",
+                    "size": "0.47140452079103173"
+                }
+            ],
+            "name": "cluster 8"
+        }
+    ],
+    "name": "clusters"
+}
