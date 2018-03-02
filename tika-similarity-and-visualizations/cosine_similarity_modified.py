@@ -21,28 +21,35 @@ from vector import Vector
 import itertools, argparse, csv
 
 
-def filterRows(inputCSV, featureSet):
+def filterRows(inputCSV, featureSet, label):
     data_rows = []
-    reader = csv.DictReader(open(inputCSV, 'rb'))
+    reader = csv.DictReader(open(inputCSV, 'r'))
     for line in reader:
-        line = {feature_key: float(line[feature_key]) for feature_key in featureSet}
+        if featureSet == None:
+            featureSet = list(line.keys())
+        featureSet.append(label)
+        line = {feature_key: line[feature_key] for feature_key in featureSet}
         data_rows.append(line)
     return data_rows
 
 
-def computeScores(inputCSV, outCSV, featureSet):
-    with open(outCSV, "wb") as outF:
+def computeScores(inputCSV, outCSV, label, featureSet):
+    with open(outCSV, "w", newline='') as outF:
         a = csv.writer(outF, delimiter=',')
         a.writerow(["x-coordinate", "y-coordinate", "Similarity_score"])
 
-        data_tuple = itertools.combinations(filterRows(inputCSV, featureSet), 2)
+        data_tuple = itertools.combinations(filterRows(inputCSV, featureSet, label), 2)
         for data1, data2 in data_tuple:
             try:
-                row_cosine_distance = ['_'.join(map(str,data1.values())), '_'.join(map(str,data2.values()))]
+                row_cosine_distance = [data1[label], data2[label]]
                 v1 = Vector()
-                v1.features = data1
+                data1_copy = data1.copy()
+                data1_copy.pop(label, None)
+                v1.features = {k:float(v) for k,v in data1_copy.items()}
                 v2 = Vector()
-                v2.features = data2
+                data2_copy = data2.copy()
+                data2_copy.pop(label, None)
+                v2.features = {k:float(v) for k,v in data2_copy.items()}
 
                 row_cosine_distance.append(v1.cosTheta(v2))
 
@@ -57,9 +64,12 @@ if __name__ == "__main__":
     argParser.add_argument('--inputCSV', required=True, help='path to input file containing data to be compared')
     argParser.add_argument('--outCSV', required=True,
                            help='path to directory for storing the output CSV File, containing pair-wise Cosine similarity Scores')
+    argParser.add_argument('--label', required=True,
+                           help='label that should appear on the graphs')
     argParser.add_argument('--accept', nargs='+', type=str,
                            help='Optional: compute similarity only on specified header columns in CSV')
+
     args = argParser.parse_args()
 
     if args.inputCSV and args.outCSV:
-        computeScores(args.inputCSV, args.outCSV, args.accept)
+        computeScores(args.inputCSV, args.outCSV, args.label, args.accept)

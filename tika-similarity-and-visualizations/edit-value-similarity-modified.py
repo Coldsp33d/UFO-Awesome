@@ -27,26 +27,34 @@ def stringify(attribute_value):
         return str(attribute_value.encode('utf-8').strip())
 
 
-def filterRows(inputCSV, featureSet):
+def filterRows(inputCSV, featureSet, label):
     data_rows = []
-    reader = csv.DictReader(open(inputCSV, 'rb'))
+    reader = csv.DictReader(open(inputCSV, 'r'))
     for line in reader:
+        if featureSet == None:
+            featureSet = list(line.keys())
+        featureSet.append(label)
         line = {feature_key: line[feature_key] for feature_key in featureSet}
         data_rows.append(line)
     return data_rows
 
-def computeScores(inputCSV, outCSV, acceptTypes, allKeys):
-    with open(outCSV, "wb") as outF:
+def computeScores(inputCSV, outCSV, label, acceptTypes, allKeys):
+    with open(outCSV, "w", newline='') as outF:
         a = csv.writer(outF, delimiter=',')
         a.writerow(["x-coordinate", "y-coordinate", "Similarity_score"])
 
-        data_tuple = itertools.combinations(filterRows(inputCSV, acceptTypes), 2)
+        data_tuple = itertools.combinations(filterRows(inputCSV, acceptTypes, label), 2)
         for data1, data2 in data_tuple:
             try:
-                row_edit_distance = [data1, data2]
+                row_edit_distance = [data1[label], data2[label]]
+                data1_copy = data1.copy()
+                data1_copy.pop(label, None)
 
-                file1_parsedData = data1.keys()
-                file2_parsedData = data2.keys()
+                data2_copy = data2.copy()
+                data2_copy.pop(label, None)
+
+                file1_parsedData = list(data1_copy.keys())
+                file2_parsedData = list(data2_copy.keys())
 
                 intersect_features = set(file1_parsedData) & set(file2_parsedData)
 
@@ -91,10 +99,12 @@ if __name__ == "__main__":
     argParser.add_argument('--inputCSV', required=False, help='path to input file containing data to be compared')
     argParser.add_argument('--outCSV', required=True,
                            help='path to directory for storing the output CSV File, containing pair-wise Similarity Scores based on edit distance')
+    argParser.add_argument('--label', required=True,
+                           help='label that should appear on the graphs')
     argParser.add_argument('--accept', nargs='+', type=str,
                            help='Optional: compute similarity only on specified IANA MIME Type(s)')
     argParser.add_argument('--allKeys', action='store_true', help='compute edit distance across all keys')
     args = argParser.parse_args()
 
     if args.inputCSV and args.outCSV:
-        computeScores(args.inputCSV, args.outCSV, args.accept, args.allKeys)
+        computeScores(args.inputCSV, args.outCSV, args.label, args.accept, args.allKeys)

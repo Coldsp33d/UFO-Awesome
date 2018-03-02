@@ -21,34 +21,46 @@
 
 from tika import parser
 import os, itertools, argparse, csv
+from functools import reduce
 
-def filterRows(inputCSV, featureSet):
+def filterRows(inputCSV, featureSet, label):
     data_rows = []
-    reader = csv.DictReader(open(inputCSV, 'rb'))
+    reader = csv.DictReader(open(inputCSV, 'r'))
     for line in reader:
-        line = {feature_key: float(line[feature_key]) for feature_key in featureSet}
+        if featureSet is None:
+            featureSet = list(line.keys())
+        featureSet.append(label)
+        line = {feature_key: line[feature_key] for feature_key in featureSet}
         data_rows.append(line)
     return data_rows
 
 
-def computeScores(inputCSV, outCSV, featureSet):
+def computeScores(inputCSV, outCSV, label, featureSet):
 
-    with open(outCSV, "wb") as outF:
+    with open(outCSV, "w", newline='') as outF:
       a = csv.writer(outF, delimiter=',')
       a.writerow(["x-coordinate","y-coordinate","Similarity_score"])
 
-      data_tuple = itertools.combinations(filterRows(inputCSV, featureSet), 2)
+      data_tuple = itertools.combinations(filterRows(inputCSV, featureSet, label), 2)
+
 
       for data1, data2 in data_tuple:
+        data1_copy = data1.copy()
+        data1_copy.pop(label, None)
+        data1_copy = {k: float(v) for k, v in data1_copy.items()}
 
-        isCoExistant = lambda k: ( k in data2) and ( data1[k] == data2[k] )
-        intersection = reduce(lambda m,k: (m + 1) if isCoExistant(k) else m, data1.keys(), 0)
+        data2_copy = data2.copy()
+        data2_copy.pop(label, None)
+        data2_copy = {k: float(v) for k, v in data2_copy.items()}
+
+        isCoExistant = lambda k: ( k in data2_copy) and ( data1_copy[k] == data2_copy[k] )
+        intersection = reduce(lambda m,k: (m + 1) if isCoExistant(k) else m, data1_copy.keys(), 0)
 
 
-        union = len(data1.keys()) + len(data2.keys()) - intersection
+        union = len(data1_copy.keys()) + len(data2_copy.keys()) - intersection
         jaccard = float(intersection) / union
 
-        a.writerow([data1, data2, jaccard])
+        a.writerow([data1[label], data2[label], jaccard])
 
 
 if __name__ == "__main__":
@@ -56,8 +68,10 @@ if __name__ == "__main__":
     argParser = argparse.ArgumentParser('Jaccard similarity based file metadata')
     argParser.add_argument('--inputCSV', required=True, help='path to input file containing data to be compared')
     argParser.add_argument('--outCSV', required=True, help='path to directory for storing the output CSV File, containing pair-wise Jaccard similarity Scores')
+    argParser.add_argument('--label', required=True,
+                           help='label that should appear on the graphs')
     argParser.add_argument('--accept', nargs='+', type=str, help='Optional: compute similarity specified header columns in CSV')
     args = argParser.parse_args()
 
     if args.inputCSV and args.outCSV:
-        computeScores(args.inputCSV, args.outCSV, args.accept)
+        computeScores(args.inputCSV, args.outCSV, args.label, args.accept)
