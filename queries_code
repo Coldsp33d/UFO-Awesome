@@ -1,0 +1,66 @@
+//Query for elevation wrt weather features
+import utils
+import pandas as pd
+
+df = utils.simple_csv_loader('Data/ufo_awesome_joined.csv', parse_dates=
+   ...: utils.df_date_cols, compression='gzip')
+
+v=pd.cutdf.elevation, [-500, 0, 500, 1000, 1500, 2000, 2500, 3000, 3500,
+   ...:  4000, 4500])
+
+result = df.groupby(v)\
+   ...: .agg({
+   ...:   'elevation' : 'size', 
+   ...: 'precipitation' : 'mean', 
+   ...: 
+   ...:                   'pdsi' : 'mean',
+   ...: 'temp_avg':'mean'
+   ...: })\
+   ...: .rename(columns={'elevation' : 'num_sightings'})\
+   ...: .reset_index()
+
+utils.simple_csv_saver(result, 'elev3.csv')
+
+
+df  = pd.read_csv('elev3.csv', index_col=[0])
+    ...: df2 = (df - df.mean()) / (df.max() - df.min())
+    ...: df2.to_csv('elev4.csv')
+    ...: 
+
+//Query for shape wrt census age ranges 
+x = df.groupby(['shape', 'census_year'])['children','adults','senior_citizens'].first()
+y = df.groupby(['shape', 'census_year']).adults.count()
+y.name = 'total_sightings'
+z = pd.concat([x, y], 1).dropna().reset_index()
+
+z_2000 = z[z.census_year == 2000].drop('census_year', 1).to_csv('lol_2000.csv') 
+z_2010 = z[z.census_year == 2010].drop('census_year', 1) .to_csv('lol_2010.csv')
+
+
+//Query for airport_distance vs duration of sighting
+i = pd.cut(
+   ...: 
+   ...:         df.duration, 
+   ...: 
+   ...:         bins=[0, 60, 300, 3600, pd.np.inf], 
+   ...: 
+   ...:         labels=['<1min', '1-5 min', '1hr', '>1hr']
+   ...: 
+   ...: )
+   ...: 
+   ...: j = pd.cut(
+   ...: 
+   ...:         df.airport_distance, 
+   ...: 
+   ...:         bins=[0, 5, 10, 15, 20, 25, pd.np.inf], 
+   ...: 
+   ...:         labels=['<5mi', '5-10mi', '10-15mi', '15-20mi', '20-25mi', '>25m
+   ...: i']
+   ...: 
+   ...: )
+result = i.groupby(j).value_counts().unstack(-1, fill_value=0)
+
+utils.simple_csv_saver(result, 'dist.csv')
+
+
+
