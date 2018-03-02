@@ -9,7 +9,7 @@ import re
 import fileinput
 
 count = 0
-for line in fileinput.input('Data/ufo_awesome.json', inplace=True):
+for line in fileinput.input('Data/Input/ufo_awesome.json', inplace=True):
     try:
         data = json.loads(line)
 
