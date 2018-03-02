@@ -32,7 +32,36 @@ This generates a CSV file `Data/ufo_awesome_joined.csv` with 61K rows and 29 fea
 
     In [3]: df.head()
 
-After this, ... >//<;
+After this, you can then run some queries to generate vizualizations. First, run 
+
+    python queries.py
+
+This generates some CSV files in `Data/Viz/` that are used as input to the Tika visualization code. After this, cd into the `tika-similarity-and-visualizations\` folder, and run any of the following script(s):
+
+    python cosine_similarity_modified.py --inputCSV ../Data/Viz/census_2000.csv --outCSV ../Data/Viz/census_2000_out.csv --label shape
+
+This performs cosine similarity. Alternatively, for edit distance, run:
+
+    python3.6 edit-value-similarity-modified.py --inputCSV ../Data/Viz/census_2000.csv --outCSV ../Data/Viz/census_2000_out.csv --label shape
+
+Alternatively, for Jaccard similarity, run:
+
+    python jaccard_similarity_modified --inputCSV ../Data/Viz/census_2000.csv --outCSV ../Data/Viz/census_2000_out.csv --label shape
+
+
+Next, to view the graphs on your browser, start localhost, and then, run any of the following:
+
+    python edit-cosine-circle-packing.py --inputCSV ../Data/Viz/census_2000_out.csv --cluster 0
+
+And then open `circlepacking.html` to see a circlepacking graph. Or,
+
+    python edit-cosine-correlation-matrix.py --inputCSV ../Data/Viz/census_2000_out.csv
+
+And then open `correlation-matrix-d3.html` in a browser to see a correlation matrix. Or,
+
+    python edit-cosine-cluster.py --inputCSV ../Data/Viz/census_2000_out.csv --cluster 0
+
+And then open `cluster-d3.html` to see a Dendrogram.
 
 ## Project structure
 
@@ -53,16 +82,5 @@ After this, ... >//<;
     │   └── ...
     └── utils.py
 
-The starting point is a set of input files that have been aggregated to CSV (or JSON) from their original sources and formats.
-
-
-This will clean all datasets and join them together.
-
--   The `Data/` folder contains all the data you will need to get up and running. It has subfolders `Input/` and `Resources/`, which contain input datasets, and various resources that are used for the join proces respectively.  
--   (to be continued...)
-
-## Methodology
-
-(Expand on this is need be)
 
 (Repo and README curated with love by Shiva)

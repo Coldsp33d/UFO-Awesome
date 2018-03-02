@@ -57,11 +57,11 @@ result = df.groupby(v)\
             .rename(columns={'elevation' : 'num_sightings'})\
             .reset_index()
 
-utils.simple_csv_saver(result,' Data/Viz/elev.csv')           
+utils.simple_csv_saver(result, 'Data/Viz/elev.csv')           
 
-df  = pd.read_csv('Data/Viz/elev.csv', index_col=[0])
-df2 = (df - df.mean()) / (df.max() - df.min())
-df2.to_csv('Data/Viz/elev_norm.csv')   
+v  = pd.read_csv('Data/Viz/elev.csv', index_col=[0])
+v = (v - v.mean()) / (v.max() - v.min())
+v.to_csv('Data/Viz/elev_norm.csv')   
 
 
 # ---- distance v/s duration query ---- #                           
