@@ -32,7 +32,8 @@ def clean_ufo_data(save : bool=True) -> pd.DataFrame:
      )
 
     # clean up shape column
-    df['shape'] = df['shape'].str.strip().mask(df['shape'].eq('unknown'))
+    df['shape'] = df['shape'].str.strip()#
+    df['shape'] = df['shape'].mask(df['shape'].eq('unknown'))
     # cleanup state column
     df['state'] = df['state'].mask(~df['state'].isin(states))
     # cleanup description column # TODO - MORE
@@ -64,7 +65,8 @@ def clean_ufo_data(save : bool=True) -> pd.DataFrame:
                         ) 
         ),
         errors='coerce'
- )
+    )
+    df.loc[df.duration.lt(1), 'duration'] = pd.np.nan
 
     df['is_urban'] = df.municipality.isin(cities)
 
