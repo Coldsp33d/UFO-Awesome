@@ -43,6 +43,29 @@ def clean_ufo_data(save : bool=True) -> pd.DataFrame:
                          .str.replace('\s+', ' ')
     # add indicator for urban/rural data
     cities = json.load(open('Data/Resources/cities.json'))
+    # clean duration
+    df['duration'] = pd.to_numeric(
+       df['duration']
+         .str.lower()
+         .str.rstrip('.')
+         .replace(
+            {
+               r'min(s|ute)?\b' : 'minutes', 
+               r'sec(s|ond)?\b' : 'seconds'
+            }, 
+            regex=True
+         ).str.replace(
+                r'(\d+)(minutes|seconds)', 
+                r'\1 \2'
+         ).str.replace(
+                r'.*?(\d+) (minutes|seconds).*', 
+                lambda x: str(
+                                int(x.group(1)) * { 'minutes' : 60, 'seconds' : 1 }[x.group(2)]
+                        ) 
+        ),
+        errors='coerce'
+ )
+
     df['is_urban'] = df.municipality.isin(cities)
 
     df = df.merge(df_elev, on=['municipality', 'state'], how='left')
