@@ -56,17 +56,19 @@ if __name__ == '__main__':
     df.description = df.description.apply(preprocess)      # stopword removal done HERE
 
     v = df.groupby(
-            df.state, 
-            as_index=False, 
-            squeeze=True
+            'state'
         ).description.apply(' '.join)
 
+    v = v.loc[df.state.value_counts().index]
+
     # with love from https://stackoverflow.com/q/34232190/4909087
-    tfidf = TfidfVectorizer(use_idf=True, ngram_range=(1, 2)) 
-    X = tfidf.fit_transform(v).nonzero()[1]   # transformed counts
+    tfidf = TfidfVectorizer(use_idf=True) 
+    X = tfidf.fit_transform(v)
+    c = X.nonzero()[1]                           # transformed counts
     f = pd.np.array(tfidf.get_feature_names())   # feature names 
 
-    json.dump(f[X[:100]].tolist(), open('Data/Resources/keywords.json', 'w'))
+    json.dump(f[c[:100]].tolist(), open('Data/Resources/keywords.json', 'w'))
+    # pd.DataFrame(.todense(), index=v.index).to_csv('Data/description_tfidf.csv')
 
     
 
