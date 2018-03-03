@@ -42,7 +42,7 @@ This generates some CSV files in `Data/Viz/` that are used as input to the Tika 
 
 This performs cosine similarity. Alternatively, for edit distance, run:
 
-    python3.6 edit-value-similarity-modified.py --inputCSV ../Data/Viz/census_2000.csv --outCSV ../Data/Viz/census_2000_out.csv --label shape
+    python edit-value-similarity-modified.py --inputCSV ../Data/Viz/census_2000.csv --outCSV ../Data/Viz/census_2000_out.csv --label shape
 
 Alternatively, for Jaccard similarity, run:
 
